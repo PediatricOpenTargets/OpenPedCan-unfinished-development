@@ -13,15 +13,14 @@ library(plyranges)
 library(dplyr)
 
 
-GTF_DATA = read.delim("../../../OpenPedCan-analysis/data/gencode.v39.primary_assembly.annotation.gtf.gz",header = F,skip = 5)
+GTF_DATA = read.delim("../../OpenPedCan-analysis/data/gencode.v39.primary_assembly.annotation.gtf.gz",header = F,skip = 5)
 
-
-Methyl_ISOFORM_DATA = read.delim("/mnt/isilon/opentargets/wafulae/methylation-summary/results/isoform-methyl-beta-values-summary.tsv.gz")
-#Methyl_GENE_DATA = read.delim("/mnt/isilon/opentargets/wafulae/methylation-summary/results/gene-methyl-beta-values-summary.tsv.gz")
+Methyl_ISOFORM_DATA = read.delim('input/example-isoform-methyl-beta-values-summary.tsv')
+# Methyl_ISOFORM_DATA = read.delim("/mnt/isilon/opentargets/wafulae/methylation-summary/results/isoform-methyl-beta-values-summary.tsv.gz")
+# Methyl_GENE_DATA = read.delim("/mnt/isilon/opentargets/wafulae/methylation-summary/results/gene-methyl-beta-values-summary.tsv.gz")
 
 
 ### Test Parameters #
-GENE_NAME = "BPTF"
 GENE_NAME = "BPTF"
 GENE_NAME = "ALK"
 GENE_NAME = "B2M"

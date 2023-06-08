@@ -1,0 +1,264 @@
+---
+title: ""
+output: html_document
+date: '2022-04-19'
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(vroom)
+
+`%>%` <- magrittr::`%>%`
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# CNV Pilot Plot Code
+
+Code for pilot plots developed for copy number variant (CNV) plots for the OpenPedCan/Molecular Targets Project API and eventual inclusion in the website.
+
+### Data
+
+This code is intended to be run with the `OpenPedCan-analysis` submodule in this repository. Please see the main repository README for the instructions on how to initialize the submodule and download the data. **WARNING:** This code is not maintained and there may be breaking changes at any time. Also funding has ended for this portion of the MTP project so data may no longer be available in the same way. For the most up-to-date instructions on how to access data, please see the main [OpenPedCan-analysis repository](https://github.com/PediatricOpenTargets/OpenPedCan-analysis).
+
+---
+
+In this chunk, read in all the necessary files from the `OpenPedCan-analysis` submodule and filter for the genes used to develop the pilot plots
+
+```{r}
+# read in histology file
+# histology file has the metadata for each biospecimen like patient id, tumor type,
+# sequenceing type, specimen type, cancer type, etc.
+vroom::vroom('../../../OpenPedCan-analysis/data/histologies.tsv') -> histologies
+
+
+### find example genes for plot drafts; one time only
+# find gene with lots of deletions for examples
+# histologies %>%
+#   filter(cancer_group == 'Neuroblastoma') %>%
+#   left_join(cnv, by = c('Kids_First_Biospecimen_ID' = 'biospecimen_id')) %>%
+#   filter(!is.na(copy_number)) %>%
+#   count(gene_symbol, status) %>% 
+#   tidyr::pivot_wider(names_from = status, values_from = n) %>%
+#   arrange(desc(`deep deletion`))
+# 
+# # find average gene for examples
+# histologies %>%
+#   filter(cancer_group == 'Neuroblastoma') %>%
+#   left_join(cnv, by = c('Kids_First_Biospecimen_ID' = 'biospecimen_id')) %>%
+#   filter(!is.na(copy_number)) %>%
+#   count(gene_symbol, status) %>%
+#   tidyr::pivot_wider(names_from = status, values_from = n) %>%
+#   filter(neutral > gain, neutral > loss, neutral > `deep deletion`, neutral > amplification)
+
+
+# make table of example genes for filtering; note that IRS4 may come up if you
+# run the selection code but that was removed in later OPC versions and was then
+# removed as an example gene
+tibble::tibble(gene_symbol = c('ADNP2', 'DUX4', 'MYCN'),
+               ensembl = c('ENSG00000101544', 'ENSG00000260596',
+                           'ENSG00000134323')) -> gene_ensembl
+
+
+# independent specimens list; using the same one as the SNV frequencies module
+# https://github.com/PediatricOpenTargets/OpenPedCan-analysis/tree/dev/analyses/snv-frequencies
+# as Jo Lynne requested. Some samples are duplicated and this is a list of unique
+# samples that all analyses use
+vroom::vroom('../../../OpenPedCan-analysis/data/independent-specimens.wgswxspanel.primary.prefer.wxs.tsv') -> independent_specs
+
+# read in CNV table; main table we're interested in visualizing
+vroom::vroom('../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.tsv.gz') %>%
+  # filter for independent biospecimen ids, for test genes only, for primary tumor only
+  filter(ensembl %in% gene_ensembl$ensembl,
+         biospecimen_id %in% independent_specs$Kids_First_Biospecimen_ID) %>%
+  # add in the tumor metadata
+  left_join(histologies, by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID')) %>%
+  filter(sample_type == 'Tumor', tumor_descriptor == 'Primary Tumor',
+         !is.na(cancer_group), biospecimen_id != 'TARGET-10-PARDSP-09A-01D') -> cnv
+```
+
+#### Outlier
+
+Found this sample that was an extreme outlier in copy number compared to all other samples; found during course of development and went back and filtered it out just for ease of development but left this here to explain decision
+
+```{r}
+### in order to plot have to read cnv table in without filtering out the sample
+# cnv %>%
+#   filter(biospecimen_id == 'TARGET-10-PARDSP-09A-01D') %>%
+# ggplot(aes(x = copy_number)) +
+#   geom_histogram(bins = 20, color = 'black', fill = 'white') +
+#   labs(x = 'Copy Number', y = 'Number of Genes', 
+#        title = 'TARGET-10-PARDSP-09A-01D') +
+#   theme_bw(base_size = 20)
+```
+
+<br>
+
+## Pilot Plots
+
+The Open Targets framework allows the user to view data from three perspectives: disease, gene, and evidence. The disease view shows all data relating to the given disease, including all genes. The gene view shows all data relating to the given gene, so showing information for that gene in all diseases. The evidence page view is the most specific showing data only for a single gene in a single disease.
+
+### Gene Page Plot
+
+For the gene page view, we settled on a bubble plot with diseases on the x-axis, categorical copy number on the y-axis (0, 1, 2, 3, 4, 5+), with the bubbles proportional to the number of samples for the particular disease. Since it was useful to see both the absolute count of samples and the proportion of samples in the disease at a given copy number, the plan would have been to have two views, one for absolute count and one for percentage. The code for the two different sample representation methods is in the two chunks below.
+
+---
+
+Bubble plot size by count
+
+```{r, fig.width = 12, fig.height = 4}
+for (i in gene_ensembl$gene_symbol) {
+cnv %>% 
+  filter(gene_symbol == i) %>%
+  add_count(cancer_group) %>% 
+  filter(n >= 3) %>%
+  mutate(copy_number2 = factor(ifelse(copy_number >= 5, '5+', copy_number),
+                               levels = c('5+', '4', '3', '2', '1', '0'))) %>%
+  count(cancer_group, copy_number2) %>%
+  group_by(cancer_group) %>% 
+  mutate(rownum = row_number(),
+         group_count = sum(n)) %>%
+  ungroup() %>%
+  mutate(count_label = ifelse(rownum == 1, group_count, '')) %>%
+ggplot(aes(x = cancer_group, y = copy_number2)) +
+  scale_y_discrete(limits = rev, drop = F) +
+  geom_point(aes(size = n, fill = copy_number2), shape = 21) +
+  scale_size_continuous(guide = 'none', range = c(1, 10)) +
+  geom_text(aes(label = n), size = 3, color = 'gray60') +
+  viridis::scale_fill_viridis(discrete = T, option = 'viridis', direction = -1, drop = F) +
+  scale_color_manual(values = c('gray0', 'gray20', 'gray40', 'gray60', 
+                                'gray80', 'gray100'),
+                     guide = 'none', drop = F) +
+  coord_cartesian(clip = 'off') +
+  geom_text(aes(label = count_label), y = 7, size = 3.5) +
+  labs(x = 'Disease', y = 'Copy Number', fill = 'Copy Number', 
+       title = paste0(filter(gene_ensembl, gene_symbol == i)$gene_symbol, ' (',
+                      filter(gene_ensembl, gene_symbol == i)$ensembl, ')\n')) +
+  theme_bw(base_size = 12) + 
+  theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1, size = 8),
+        plot.margin = margin(10, 10, 10, 50),
+        panel.grid.minor = element_line(color = 'gray60')) -> p5c
+  print(p5c)
+  ggsave(paste0('plots/bubble_plot_counts_', i, '.png'), p5c)
+}
+
+```
+
+Bubble plot size by percentage
+
+```{r, fig.width = 12, fig.height = 4}
+for (i in gene_ensembl$gene_symbol) {
+cnv %>% 
+  filter(gene_symbol == i) %>%
+  add_count(cancer_group) %>% 
+  filter(n >= 3) %>%
+  mutate(copy_number2 = factor(ifelse(copy_number >= 5, '5+', copy_number),
+                               levels = c('5+', '4', '3', '2', '1', '0'))) %>%
+  count(cancer_group, n, copy_number2) %>%
+  mutate(percent = round((nn / n) * 100),
+         label = paste0(percent, '%'),
+         label = ifelse(label == '0%', '<1%', label)) %>%
+  group_by(cancer_group) %>% 
+  mutate(rownum = row_number()) %>%
+  ungroup() %>%
+  mutate(count_label = ifelse(rownum == 1, n, '')) %>%
+ggplot(aes(x = cancer_group, y = copy_number2)) +
+  scale_y_discrete(limits = rev, drop = F) +
+  geom_point(aes(size = percent, fill = copy_number2), shape = 21) +
+  scale_size_continuous(guide = 'none', range = c(1, 10)) +
+  geom_text(aes(label = label), size = 3, color = 'gray60') +
+  viridis::scale_fill_viridis(discrete = T, option = 'viridis', direction = -1, drop = F) +
+  scale_color_manual(values = c('gray0', 'gray20', 'gray40', 'gray60', 
+                                'gray80', 'gray100'),
+                     guide = 'none', drop = F) +
+  coord_cartesian(clip = 'off') +
+  geom_text(aes(label = count_label), y = 7, size = 3.5) +
+  labs(x = 'Disease', y = 'Copy Number', fill = 'Copy Number', 
+       title = paste0(filter(gene_ensembl, gene_symbol == i)$gene_symbol, ' (',
+                      filter(gene_ensembl, gene_symbol == i)$ensembl, ')\n')) +
+  theme_bw(base_size = 12) + 
+  theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1, size = 8),
+        plot.margin = margin(10, 10, 10, 50),
+        panel.grid.minor = element_line(color = 'gray60')) -> p5d
+  print(p5d)
+  ggsave(paste0('plots/bubble_plot_percents_', i, '.png'), p5d)
+}
+```
+
+<br><br>
+
+### Evidence Page Plot
+
+For the evidence page view, we settled on a stacked bar plot, showing the percentages of samples at a given copy number in that gene in that disease per cohort. The color gives the copy number status where deep deletion is a copy number of 0, loss is a copy number less than ploidy, neutral is a copy number equal to ploidy, gain is a copy number between ploidy and 2 times ploidy and amplification is a copy number greater than 2 times ploidy. As these are cancer samples, some have ploidies other than two so the categorical labels are in reference to the ploidy of each sample. The total sample size for each cohort is given at the top of the stacked bar.
+
+```{r}
+for (i in gene_ensembl$gene_symbol) {
+cnv %>%
+  filter(gene_symbol == i, cancer_group == 'Neuroblastoma') %>%
+  mutate(status = ifelse(!is.na(status), status,
+                         case_when(copy_number == 0 ~ 'deep deletion',
+                         copy_number < ploidy & copy_number != 0 ~ 'loss',
+                         copy_number == ploidy ~ 'neutral',
+                         copy_number <= (2*ploidy) ~ 'gain',
+                         copy_number > (2*ploidy) ~ 'amplification'))) %>%
+  add_count(cancer_group) %>% 
+  filter(n >= 3) %>%
+  select(Kids_First_Participant_ID, biospecimen_id, status, copy_number, ploidy, ensembl, gene_symbol, 
+         cohort) -> gene_disease
+
+rbind(gene_disease, mutate(gene_disease, cohort = 'All Cohorts')) -> gene_disease2
+  
+gene_disease2 %>%
+  add_count(cohort, name = 'sample_count') %>%
+  count(cohort, status, sample_count) %>%
+  mutate(percent = round((n / sample_count) * 100),
+         label = paste0(percent, '%'),
+         label = ifelse(label == '0%', '<1%', label),
+         status = factor(status, levels = c('amplification', 'gain', 'neutral', 
+                                            'loss', 'deep deletion'))) %>%
+  group_by(cohort) %>%
+  mutate(count_label = ifelse(row_number() == 1, paste0('n = ', sample_count), '')) %>%
+  ungroup() %>%
+ggplot(aes(x = cohort, y = percent, fill = status)) +
+  geom_col() +
+  viridis::scale_fill_viridis(discrete = T, option = 'viridis', direction = -1, drop = F) +
+  geom_text(aes(label = label, color = status), 
+            position = position_stack(vjust = 0.5)) +
+  scale_color_manual(values = c('gray0', 'gray20', 'gray40', 'gray60', 
+                                'gray80', 'gray100'),
+                     guide = 'none', drop = F) +
+  geom_text(aes(label = count_label), y = 105) +
+  coord_cartesian(ylim = c(0, 107)) +
+  scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100)) +
+  labs(x = 'Cohort', y = 'Percent Copy Number', fill = 'Copy Number',
+       title = paste0(ifelse(filter(gene_ensembl, gene_symbol == i)$gene_symbol == 'DUX4', 
+                             'Diffuse midline glioma', 'Neuroblastoma'), ": ",
+                      filter(gene_ensembl, gene_symbol == i)$gene_symbol, ' (',
+                      filter(gene_ensembl, gene_symbol == i)$ensembl, ')')) + 
+  theme_classic(base_size = 16) -> ep1
+  print(ep1)
+  ggsave(paste0('plots/evidence_plot_bar_percentages_', i, '.png'), ep1)
+}
+```
+
+
+
+<br>
+
+### Disease Page Plot
+
+The circos plot for the disease page view require more computational power than the average personal computer can provide so it was broken out into its own script. See `cnv_pilot_plot_code_disease.Rmd` for that code.
+
+
+
+
+
+
+
+
+
+
+<br><br>
+
