@@ -1,0 +1,279 @@
+---
+title: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(vroom)
+
+`%>%` <- magrittr::`%>%`
+
+library(ggbio)
+options(bitmapType='cairo')
+# used but not explicitly loaded due to package conflicts
+# library(biomaRt)
+# library(plyranges)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Disease Page View CNV Plots
+
+The Open Targets framework allows the user to view data from three perspectives: disease, gene, and evidence. The disease view shows all data relating to the given disease, including all genes. The gene view shows all data relating to the given gene, so showing information for that gene in all diseases. The evidence page view is the most specific showing data only for a single gene in a single disease.
+
+---
+
+For the disease page view, we decided on a circos plot, which is a circular plot showing multiple levels of information. This one has the genomeThe circos plot for the disease page view require more computational power than the average personal computer can provide so it was broken out into its own script.
+
+### Data
+
+#### hg38 Cytobands
+
+Cytobands are used to define the chromosome ideograms for a reference genome. Cytoband data downloaded directly from UCSC at <http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/cytoBand.txt.gz>. This is for the  backbone of the circos plot.
+
+```{r}
+vroom::vroom('http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/cytoBand.txt.gz',
+             col_names = c('chr', 'start', 'end', 'band', 'stain')) -> hg38_cytobands
+```
+
+#### Pediatric Molecular Target List
+
+Read in and get the locations of the pmtl genes.
+
+```{r}
+# read in table
+vroom::vroom('ensg-hugo-pmtl-mapping.tsv') -> pmtl_genes
+
+# get the coordinates for the pmtl genes
+# biomaRt::getBM(attributes = c('ensembl_gene_id', 'chromosome_name', 
+#                               'start_position', 'end_position'), 
+#                mart = biomaRt::useEnsembl(biomart = "genes", 
+#                                           dataset = "hsapiens_gene_ensembl"),
+#                filters = 'ensembl_gene_id',
+#                values = unique(pmtl_genes$ensg_id)) %>%
+#   filter(chromosome_name %in% c(1:22, 'X', 'Y')) %>%
+#   rename(chr = chromosome_name, start = start_position, end = end_position) -> gene_locs
+# readr::write_tsv(gene_locs, 'gene_locs.tsv')
+vroom('gene_locs.tsv') -> gene_locs
+
+# combine pmtl genes with their locations
+pmtl_genes %>%
+  left_join(gene_locs, by = c('ensg_id' = 'ensembl_gene_id')) %>%
+  arrange(gene_symbol) %>%
+  group_by(gene_symbol) %>%
+  filter(row_number() == 1) %>%
+  ungroup() -> pmtl_genes_locs
+```
+
+### Copy Number Variants (CNV)
+
+Read in metadata tables from `OpenPedCan-analysis`
+
+```{r}
+### histologies
+# histology file has the metadata for each biospecimen like patient id, tumor type,
+# sequenceing type, specimen type, cancer type, etc.
+vroom::vroom('histologies.tsv') -> histologies
+
+### biospecimen list
+# using the same one as the SNV frequencies module
+# https://github.com/PediatricOpenTargets/OpenPedCan-analysis/tree/dev/analyses/snv-frequencies
+# as Jo Lynne requested. Some samples are duplicated and this is a list of unique
+# samples that all analyses use
+vroom::vroom('independent-specimens.wgswxspanel.primary.prefer.wxs.tsv') -> independent_specs
+```
+
+Actual table with CNVs, filtered for our independent specimens, for primary tumors, and to remove an outlier sample that was excluded for the purpose of development only.
+
+```{r}
+### cnvs
+vroom::vroom('consensus_wgs_plus_cnvkit_wxs.tsv') %>%
+  # filter for masterlist of biospecimen ids, for primary tumor only
+  inner_join(filter(histologies, cancer_group == 'Neuroblastoma'),
+             by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID')) %>%
+  filter(sample_type == 'Tumor', tumor_descriptor == 'Primary Tumor',
+         !is.na(cancer_group), biospecimen_id != 'TARGET-10-PARDSP-09A-01D',
+         biospecimen_id %in% independent_specs$Kids_First_Biospecimen_ID) %>%
+  left_join(pmtl_genes_locs, by = c('ensembl' = 'ensg_id', 'gene_symbol')) %>%
+  filter(copy_number != ploidy) -> cnv
+```
+
+### RNA-seq Data
+
+```{r}
+### rnaseq independent specs; same as for CNVs this makes sure we have one 
+# unique sample for each patient
+vroom::vroom('independent-specimens.rnaseq.primary.tsv') -> rnaseq_independent_specs
+```
+
+#### Fusions
+
+Fusion data is called from RNA-seq only
+
+```{r}
+# read in the fusion data, combine with metadata and filter for independent
+# specimens and primary tumors
+vroom::vroom('fusion-putative-oncogenic.tsv') %>%
+  inner_join(filter(histologies, cancer_group == 'Neuroblastoma'),
+             by = c('Sample' = 'Kids_First_Biospecimen_ID')) %>%
+  filter(sample_type == 'Tumor', broad_tumor_descriptor == 'Diagnosis',
+         !is.na(cancer_group), Sample != 'TARGET-10-PARDSP-09A-01D',
+         Sample %in% rnaseq_independent_specs$Kids_First_Biospecimen_ID) -> fusions
+
+# reformat the fusions into GRanges format so they can be plotted in the circos 
+# plot
+fusions %>%
+  select(Sample, Gene1A:Gene2B) %>%
+  tidyr::pivot_longer(Gene1A:Gene2B, names_to = 'fusion_position', values_to = 'gene') %>%
+  na.omit() %>%
+  filter(gene %in% cnv$gene_symbol) -> gene_w_cnv
+
+fusions %>% 
+  filter(Gene1A %in% gene_w_cnv$gene | Gene1B %in% gene_w_cnv$gene) %>% 
+  select(Sample, LeftBreakpoint, RightBreakpoint, FusionName, Fusion_Type, 
+         Gene1A, Gene1B) %>%
+  tidyr::pivot_longer(Gene1A:Gene1B, 
+                      names_to = 'fusion_position', values_to = 'gene') %>% 
+  left_join(pmtl_genes_locs, by = c('gene' = 'gene_symbol')) %>%
+  select(-version) %>%
+  tidyr::unite(temp, c('gene', 'ensg_id', 'pmtl', 'chr', 'start', 'end'), sep = ':') %>%
+  distinct() %>% 
+  tidyr::pivot_wider(names_from = fusion_position, values_from = temp) %>%
+  tidyr::separate(Gene1A, into = c('Gene1A', 'ensg1A', 'pmtl1A', 'chr1A', 'start1A', 'end1A'), 
+                  sep = ':', convert = T) %>%
+  tidyr::separate(Gene1B, into = c('Gene1B', 'ensg1B', 'pmtl1B', 'chr1B', 'start1B', 'end1B'), 
+                  sep = ':', convert = T) %>%
+  filter(!is.na(chr1A), !is.na(chr1B),
+         pmtl1A == 'Relevant Molecular Target' | 
+           pmtl1B == 'Relevant Molecular Target') %>%
+  count(FusionName, Gene1A, ensg1A, pmtl1A, chr1A, start1A, end1A, 
+        Gene1B, ensg1B, pmtl1B, chr1B, start1B, end1B, name = 'sample_count') %>% 
+  group_by(FusionName, Gene1A, pmtl1A, chr1A, start1A, end1A, 
+           pmtl1B, sample_count) %>%
+  tidyr::nest() %>%
+  ungroup() %>%
+  mutate(partner = purrr::map(data, 
+                              ~ plyranges::as_granges(., seqnames = chr1B, 
+                                                      start = start1B, end = end1B))) %>%
+  select(-data) %>%
+  mutate(chr1A = factor(chr1A, levels = c(1:22, 'X', 'Y'))) %>%
+  plyranges::as_granges(seqnames = chr1A, start = start1A, end = end1A) %>%
+  mutate(partner = plyranges::as_granges(partner)) -> fusion_genes_granges
+```
+
+#### Gene Expression
+
+Read in the gene expression data and like all the other tables, filter for independent specimens and primary tumors.
+
+```{r}
+readr::read_rds('gene-expression-rsem-tpm-collapsed.rds') %>%
+  tibble::rownames_to_column('gene') %>% #select(gene) %>% sample_n(100) -> random_genes
+  dplyr::select(!contains('GTEX')) %>%
+  tidyr::pivot_longer(2:ncol(.), names_to = 'biospecimen_id', values_to = 'tpm') %>% 
+  dplyr::inner_join(rnaseq_independent_specs, 
+            by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID')) %>%
+  dplyr::left_join(histologies, 
+            by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID', 
+                   'Kids_First_Participant_ID')) %>%
+  dplyr::filter(Kids_First_Participant_ID %in% cnv$Kids_First_Participant_ID,
+         sample_type == 'Tumor', broad_tumor_descriptor == 'Diagnosis',
+         !is.na(cancer_group), cancer_group == 'Neuroblastoma') -> expression
+```
+
+<br>
+
+### Disease Page Plot
+
+#### Combine CNV and Expression Data
+
+One layer has the correlation between CNVs and expression, so need to calculate and then convert into GRanges format for use in the circos plot.
+
+```{r}
+cnv %>%
+  select(Kids_First_Participant_ID, ensembl, gene_symbol, copy_number) %>%
+  left_join(select(expression, Kids_First_Participant_ID, gene, tpm),
+            by = c('Kids_First_Participant_ID', 'gene_symbol' = 'gene')) %>%
+  na.omit() %>%
+  group_by(ensembl, gene_symbol) %>%
+  summarize(cn_exp_cor = cor(copy_number, tpm)) %>%
+  ungroup() -> cn_exp_cor
+
+biomaRt::getBM(attributes = c('ensembl_gene_id', 'chromosome_name', 
+                              'start_position', 'end_position'),
+               filters = 'ensembl_gene_id',
+               values = cn_exp_cor$ensembl,
+               mart = biomaRt::useEnsembl(biomart = "genes", 
+                                          dataset = "hsapiens_gene_ensembl")) %>%
+  right_join(cn_exp_cor, by = c('ensembl_gene_id' = 'ensembl')) %>% 
+  na.omit() %>%
+  plyranges::as_granges(seqnames = chromosome_name, start = start_position, 
+                        end = end_position) -> cn_exp_granges
+```
+
+#### Convert To GRanges
+
+Convert any tables that are not already in GRanges format to that format.
+
+```{r}
+cnv %>%
+  distinct(chr, start, end, ensembl, gene_symbol, copy_number, status) %>%
+  filter(chr %in% c(1:22, 'X', 'Y')) %>%
+  mutate(status = factor(status, levels = c('amplification', 'gain', 'neutral', 
+                                            'loss', 'deep deletion')),
+         chr = factor(chr, levels = c(1:22, 'X', 'Y'))) %>%
+  na.omit() %>%
+  plyranges::as_granges(seqnames = chr) -> cnv_cn_granges
+
+pmtl_genes_locs %>% 
+  filter(pmtl == 'Relevant Molecular Target') %>%
+  filter(!is.na(start), !is.na(end)) %>%
+  plyranges::as_granges(seqnames = chr) -> pmtl_granges
+
+hg38_cytobands %>%
+  filter(chr %in% c(paste0('chr', 1:22), 'chrX', 'chrY')) %>%
+  mutate(chr = stringr::str_remove(chr, 'chr'),
+         chr = factor(chr, levels = c(1:22, 'X', 'Y'))) %>%
+  plyranges::as_granges(seqnames = chr) -> hg38_cytobands_granges
+
+hg38_cytobands %>%
+  group_by(chr) %>%
+  summarize(start = min(start), end = max(end)) %>%
+  ungroup() %>%
+  filter(chr %in% c(paste0('chr', 1:22), 'chrX', 'chrY')) %>%
+  mutate(chr = stringr::str_remove(chr, 'chr'),
+         chr = factor(chr, levels = c(1:22, 'X', 'Y')),
+         label = chr) %>%
+  plyranges::as_granges(seqnames = chr) -> hg38_chr_labels
+```
+
+#### Plot
+
+```{r}
+ggbio::ggbio() + 
+  circle(fusion_genes_granges, geom = 'link', linked.to = 'partner',
+         aes(alpha = sample_count)) +
+  scale_alpha_continuous(guide = 'none') +
+  circle(pmtl_granges, geom = 'rect', color = 'dodgerblue2') +
+  ggbio::circle(cn_exp_granges, geom = 'point', size = 0.001,
+                aes(y = cn_exp_cor, color = cn_exp_cor)) +
+  scale_color_gradient2(low = '#005000', mid = "white", high = '#500d50', 
+                         midpoint = 0, limits = c(-1, 1)) +
+  ggbio::circle(cnv_cn_granges, geom = 'point', shape = 21, stroke = 0.0001,
+                aes(x = ranges, y = copy_number, fill = status)) +
+  viridis::scale_fill_viridis(discrete = T, direction = -1, drop = F) +
+  ggbio::circle(hg38_cytobands_granges, geom = 'ideogram', #trackWidth = 2, 
+                fill = 'gray60', color = 'white') +
+  ggbio::circle(hg38_chr_labels, geom = 'text', aes(label = label), size = 3) +
+  labs(color = 'Expression CNV\nCorrelation', fill = 'Copy Number') 
+
+ggplot2::ggsave('plots/cnv_disease_circle.png')
+```
+
+
+
+
+
+<br><br>
