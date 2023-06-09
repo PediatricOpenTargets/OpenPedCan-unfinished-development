@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-06-09"
+---
+
+```{r setup, include=FALSE}
+# source('src/get_cnv_evidence_tbl.R')
+source('src/get_cnv_evidence_plot.R')
+source('src/get_cnv_evidence_summary_tbl.R')
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## In Development CNV Evidence Plot Code
+
+This code was intended to be executed within an R `plumbr` API framework. It cannot be run as is without access to the API database or even with access to the API database as it was not every incorporated into the `OpenPedCan-api`. However this Rmd script does it's best to demonstrate what each script does and provide an example output.
+
+### Step 1: Fetching
+
+
+
+
+
+
+
+
+
+
+
+
+
