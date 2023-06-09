@@ -9,6 +9,9 @@ date: "2023-06-09"
 source('src/get_cnv_evidence_plot.R')
 source('src/get_cnv_evidence_summary_tbl.R')
 
+library(tidyverse)
+library(vroom)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -16,11 +19,86 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This code was intended to be executed within an R `plumbr` API framework. It cannot be run as is without access to the API database or even with access to the API database as it was not every incorporated into the `OpenPedCan-api`. However this Rmd script does it's best to demonstrate what each script does and provide an example output.
 
-### Step 1: Fetching
+### Step 1: Fetching Data from the Database
 
+The evidence page view in Open Targets is for data from specific gene and disease. The `cnv_cnv_evidence_summary` database contains information for all disease and all genes; a very limited plain-text version of the database for the 3 demo genes is in the `input/` folder and is read in in the chunk below.
 
+```{r}
+vroom('input/example_cnv_cnv_evidence_summary.csv') -> cnv_evidence_database_example
 
+cnv_evidence_database_example %>% filter(cancer_group == 'Neuroblastoma')
+```
 
+In the API, the script `src/get_cnv_evidence_tbl.R` would query the database and filter for the gene and disease requested. Constructing the database and running the API is beyond the scope of this repository so for the sake of executing the plot and summary table scripts, the example database is filtered normally using tidyverse functions.
+
+---
+
+`get_cnv_evidence_tbl()`
+
+Args:
+- ensg_id: a single character value of gene ENSG ID. REQUIRED.
+- relapse_sample_group: a single character value with the following choices.
+  REQUIRED.
+  - "exclude": Exclude relapse tumors. Does NOT raise error if there is no
+    relapse tumor.
+  - "require": Require all relapse tumors. Raise error if there is no relapse
+    tumor.
+- efo_id: a single character value of EFO ID. REQUIRED.
+- gene_symbol: NULL or a single character value of gene symbol. Default is
+  NULL, which is to select the first sorted gene symbol when one ENSG ID maps
+  to multiple gene symbols. If gene_symbol is not NULL, the (efo_id,
+  gene_symbol) tuple is selected when one ENSG ID maps to multiple gene
+  symbols.
+
+Returns a tibble with the following columns:
+- cohort: a single cohort. If the input efo_id has more than one histology_df
+  cohorts, e.g. GMKF and TARGET, include an additional cohort "All Cohorts" in
+  the result table.
+- EFO: a single EFO ID
+- MONDO: a single MONDO ID
+- Disease: a single Disease/cancer_group
+- cnv_type: categorical descriptor of the copy number variant, one of deep
+  deletion (no copies), loss (fewer copies than ploidy), neutral (same number
+  of copies as ploidy), gain (up to two times ploidy), amplification (greater
+  than two times ploidy)
+- sample_count: a numeric count of the number of samples with an alteration in
+  the given category
+- Gene_Ensembl_ID: a single ENSG ID
+- Gene_symbol: a single gene symbol
+- cancer_status: whether the tumor is primary or relapse. Will contain one or
+  both of those options, depending on the type requested
+
+```{r}
+### what the call would theoretically be in the database
+# get_cnv_evidence_tbl(ensg_id = 'ENSG00000134323', 
+#                      relapse_sample_group = 'exclude',
+#                      efo_id = 'EFO_0000621')
+
+### filter for one disease and one gene
+cnv_evidence_database_example %>%
+  filter(ensembl == 'ENSG00000134323',
+         specimen_descriptor == 'Primary Tumor',
+         efo_code == 'EFO_0000621') -> cnv_evidence_tbl
+```
+
+### Step 2: Plot
+
+---
+
+`get_cnv_evidence_plot()`
+
+Args:
+- cnv_evidence_tbl: a tibble of a single gene, one disease, with multiple
+  cohorts if they exist for that disease and returned by get_cnv_evidence_tbl.
+
+Returns a ggplot stacked bar plot of a single gene and one disease, with
+multiple cohorts if they exist for that gene
+
+```{r}
+get_cnv_evidence_plot(cnv_evidence_tbl)
+```
+
+### Step 3: Return the Plot Data Summary Table
 
 
 

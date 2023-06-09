@@ -16,18 +16,18 @@
 # applicable)
 #
 # Args:
-# - cnv_evidenct_tbl: a tibble of a single gene, one disease, with multiple 
+# - cnv_evidence_tbl: a tibble of a single gene, one disease, with multiple
 #   cohorts if they exist for that disease and returned by get_cnv_evidence_tbl.
-#
-# Returns a ggplot stacked bar plot of a single gene and one disease, with 
+# 
+# Returns a ggplot stacked bar plot of a single gene and one disease, with
 # multiple cohorts if they exist for that gene
 get_cnv_evidence_plot <- function(cnv_evidence_tbl) {
-  ensg_id <- unique(cnv_evidence_tbl$Gene_Ensembl_ID)
+  ensg_id <- unique(cnv_evidence_tbl$ensembl)
   stopifnot(is.character(ensg_id))
   stopifnot(!is.na(ensg_id))
   stopifnot(identical(length(ensg_id), 1L))
   
-  gene_symbol <- unique(cnv_evidence_tbl$Gene_symbol)
+  gene_symbol <- unique(cnv_evidence_tbl$gene_symbol)
   stopifnot(is.character(gene_symbol))
   stopifnot(!is.na(gene_symbol))
   stopifnot(identical(length(gene_symbol), 1L))
@@ -35,7 +35,7 @@ get_cnv_evidence_plot <- function(cnv_evidence_tbl) {
   cohort <- unique(cnv_evidence_tbl$cohort)
   stopifnot(is.character(cohort))
   stopifnot(!is.na(cohort))
-  stopifnot(identical(length(cohort), 1L))
+  # stopifnot(identical(length(cohort), 1L))
   
   efo_id_vec <- purrr::discard(unique(cnv_evidence_tbl$EFO), is.na)
   stopifnot(is.character(efo_id_vec))

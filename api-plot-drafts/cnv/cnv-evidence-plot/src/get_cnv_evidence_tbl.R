@@ -35,7 +35,7 @@
 #   to multiple gene symbols. If gene_symbol is not NULL, the (efo_id,
 #   gene_symbol) tuple is selected when one ENSG ID maps to multiple gene
 #   symbols.
-#
+# 
 # Returns a tibble with the following columns:
 # - cohort: a single cohort. If the input efo_id has more than one histology_df
 #   cohorts, e.g. GMKF and TARGET, include an additional cohort "All Cohorts" in
@@ -43,12 +43,12 @@
 # - EFO: a single EFO ID
 # - MONDO: a single MONDO ID
 # - Disease: a single Disease/cancer_group
-# - cnv_type: categorical descriptor of the copy number variant, one of deep 
-#   deletion (no copies), loss (fewer copies than ploidy), neutral (same number 
-#   of copies as ploidy), gain (up to two times ploidy), amplification (greater 
+# - cnv_type: categorical descriptor of the copy number variant, one of deep
+#   deletion (no copies), loss (fewer copies than ploidy), neutral (same number
+#   of copies as ploidy), gain (up to two times ploidy), amplification (greater
 #   than two times ploidy)
 # - sample_count: a numeric count of the number of samples with an alteration in
-#   the given category 
+#   the given category
 # - Gene_Ensembl_ID: a single ENSG ID
 # - Gene_symbol: a single gene symbol
 # - cancer_status: whether the tumor is primary or relapse. Will contain one or
