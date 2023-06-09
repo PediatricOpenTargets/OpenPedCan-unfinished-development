@@ -26,7 +26,7 @@ The Open Targets framework allows the user to view data from three perspectives:
 
 ---
 
-For the disease page view, we decided on a circos plot, which is a circular plot showing multiple levels of information. This one has the genomeThe circos plot for the disease page view require more computational power than the average personal computer can provide so it was broken out into its own script.
+For the disease page view, we decided on a circos plot, which is a circular plot showing multiple levels of information. This one has the genome The circos plot for the disease page view require more computational power than the average personal computer can provide so it was broken out into its own script.
 
 ### Data
 
@@ -45,9 +45,10 @@ Read in and get the locations of the pmtl genes.
 
 ```{r}
 # read in table
-vroom::vroom('ensg-hugo-pmtl-mapping.tsv') -> pmtl_genes
+vroom::vroom('../../../OpenPedCan-analysis/data/ensg-hugo-pmtl-mapping.tsv') -> pmtl_genes
 
-# get the coordinates for the pmtl genes
+# get the coordinates for the pmtl genes; run one time, was not working with
+# Rmd knit when code was archived in this repository
 # biomaRt::getBM(attributes = c('ensembl_gene_id', 'chromosome_name', 
 #                               'start_position', 'end_position'), 
 #                mart = biomaRt::useEnsembl(biomart = "genes", 
@@ -56,8 +57,8 @@ vroom::vroom('ensg-hugo-pmtl-mapping.tsv') -> pmtl_genes
 #                values = unique(pmtl_genes$ensg_id)) %>%
 #   filter(chromosome_name %in% c(1:22, 'X', 'Y')) %>%
 #   rename(chr = chromosome_name, start = start_position, end = end_position) -> gene_locs
-# readr::write_tsv(gene_locs, 'gene_locs.tsv')
-vroom('gene_locs.tsv') -> gene_locs
+# readr::write_tsv(inputs/gene_locs, 'gene_locs.tsv')
+vroom('inputs/gene_locs.tsv') -> gene_locs
 
 # combine pmtl genes with their locations
 pmtl_genes %>%
@@ -76,21 +77,21 @@ Read in metadata tables from `OpenPedCan-analysis`
 ### histologies
 # histology file has the metadata for each biospecimen like patient id, tumor type,
 # sequenceing type, specimen type, cancer type, etc.
-vroom::vroom('histologies.tsv') -> histologies
+vroom::vroom('../../../OpenPedCan-analysis/data/histologies.tsv') -> histologies
 
 ### biospecimen list
 # using the same one as the SNV frequencies module
 # https://github.com/PediatricOpenTargets/OpenPedCan-analysis/tree/dev/analyses/snv-frequencies
 # as Jo Lynne requested. Some samples are duplicated and this is a list of unique
 # samples that all analyses use
-vroom::vroom('independent-specimens.wgswxspanel.primary.prefer.wxs.tsv') -> independent_specs
+vroom::vroom('../../../OpenPedCan-analysis/data/independent-specimens.wgswxspanel.primary.prefer.wxs.tsv') -> independent_specs
 ```
 
 Actual table with CNVs, filtered for our independent specimens, for primary tumors, and to remove an outlier sample that was excluded for the purpose of development only.
 
 ```{r}
 ### cnvs
-vroom::vroom('consensus_wgs_plus_cnvkit_wxs.tsv') %>%
+vroom::vroom('../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.tsv') %>%
   # filter for masterlist of biospecimen ids, for primary tumor only
   inner_join(filter(histologies, cancer_group == 'Neuroblastoma'),
              by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID')) %>%
@@ -106,7 +107,7 @@ vroom::vroom('consensus_wgs_plus_cnvkit_wxs.tsv') %>%
 ```{r}
 ### rnaseq independent specs; same as for CNVs this makes sure we have one 
 # unique sample for each patient
-vroom::vroom('independent-specimens.rnaseq.primary.tsv') -> rnaseq_independent_specs
+vroom::vroom('../../../OpenPedCan-analysis/data/independent-specimens.rnaseq.primary.tsv') -> rnaseq_independent_specs
 ```
 
 #### Fusions
@@ -116,7 +117,7 @@ Fusion data is called from RNA-seq only
 ```{r}
 # read in the fusion data, combine with metadata and filter for independent
 # specimens and primary tumors
-vroom::vroom('fusion-putative-oncogenic.tsv') %>%
+vroom::vroom('../../../OpenPedCan-analysis/data/fusion-putative-oncogenic.tsv') %>%
   inner_join(filter(histologies, cancer_group == 'Neuroblastoma'),
              by = c('Sample' = 'Kids_First_Biospecimen_ID')) %>%
   filter(sample_type == 'Tumor', broad_tumor_descriptor == 'Diagnosis',
@@ -169,7 +170,7 @@ fusions %>%
 Read in the gene expression data and like all the other tables, filter for independent specimens and primary tumors.
 
 ```{r}
-readr::read_rds('gene-expression-rsem-tpm-collapsed.rds') %>%
+readr::read_rds('../../../OpenPedCan-analysis/data/gene-expression-rsem-tpm-collapsed.rds') %>%
   tibble::rownames_to_column('gene') %>% #select(gene) %>% sample_n(100) -> random_genes
   dplyr::select(!contains('GTEX')) %>%
   tidyr::pivot_longer(2:ncol(.), names_to = 'biospecimen_id', values_to = 'tpm') %>% 
