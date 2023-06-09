@@ -6,7 +6,10 @@
 
 This section documents and has executable code for the proposed methylation plots for the OpenPedCan/MTP API. This code cannot be used with the API as is and is included for archival purposes only; if you would like to start working on API development, please see the [main repository README](https://github.com/PediatricOpenTargets/OpenPedCan-unfinished-development)
 
-Description of plot (with link to picture?)
+**INSERT HERE** Description of plot with link to picture
+
+Next steps for developing these plots for the API would be to refactor the code to handle additional variables and to prep for incorporatio in the API. 
+It needs to be worked out tow to handle different cohorts, handle different cancer types, and how we want to handle the summary table although consensus was converging on summary by gene feaure (like promoter, exon, intron, maybe TSS/TES as well).
 
 ### Usage
 
