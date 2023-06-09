@@ -2,6 +2,7 @@
 
 At the Children's Hospital of Philadelphe, the Open Pediatric Cancer (OpenPedCan) project harmonized pediatric cancer data. One way the data was made available was through an API that, in collaboration with the National Cancer Institute (NCI), provided results from the [OpenPedCan-analysis](https://github.com/PediatricOpenTargets/OpenPedCan-analysis) project to the Molecular [Targets Platform](https://moleculartargets.ccdi.cancer.gov/pediatric-cancer-data-navigation). 
 This repository, `OpenPedCan-unfinished-development`, archives and documents code for plots in development for the [OpenPedCan-api](https://github.com/PediatricOpenTargets/OpenPedCan-api).
+**WARNING:** This repository is intended to be an archive, so code is not maintained and there may be breaking changes at any time. 
 
 ### Using `OpenPedCan-unfinished-development` Code
 
@@ -32,7 +33,7 @@ bash download-data.sh
 
 #### Developing an OpenPedCan-Api Plot
 
-Generally, API development for OpenPedCan followed these steps.
+Generally, API development for OpenPedCan followed these steps:
 
 **Step 1:** Before any API development began, demo plots would be produced for the data of interest (gene expression, copy number variants, methylation, etc.) and go through several rounds of iteration based on project member and physician feedback before settling on a final proposed pilot plot. 
 Pilot figures do undergo some revision as necessary during incorporation into the API, but will mostly match the plots proposed at this stage.

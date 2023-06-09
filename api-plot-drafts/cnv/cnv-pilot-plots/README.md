@@ -15,7 +15,7 @@ The Open Targets framework adopted by the Molecular Targets Project (MTP) allows
 The disease view shows all data relating to the given disease, including all genes. 
 The gene view shows all data relating to the given gene, so showing information for that gene in all diseases. 
 The evidence page view is the most specific showing data only for a single gene in a single disease.
-For the CNVs, a different plot was developed for each of the three views
+For the CNVs, a different plot was developed for each of the three views.
 
 #### Evidence Page View
 
@@ -55,19 +55,62 @@ As this plot is no longer under active development, the code will not be correct
 
 ### Usage
 
-The code for the pilot plots
+The code for the CNV pilot plots was broken up into two scripts for ease of execution due the different memory requirements for different pilot plots. 
+The first script has the code for the evidence and gene view pilot plots which can be run on a standard 16GB RAM individual computer. 
+The disease page view circos plot, however, requires approximately 40GB of RAM so it was broken out into a separate script that can be run independently in a higher performance computing environment.
+
+**NOTE:** Before running code, please check the relevant R/Rmd script to make sure that you have all necessary packages installed.
 
 #### Evidence and Gene Views
 
-**NOTE:** Before running code, please check the R script to make sure that you have all necessary packages installed.
+**`cnv_pilot_plot_code.Rmd`** This script reads in the data from the `OpenPedCan-analysis` submodule, combines/formats it appropriately, and then plots example plots for both the MTP evidence and gene views for three example genes with any plot variations each.
 
-To exeute the example code: `Rscript --vanilla OT_Methylation_plot.R`
+Usage:
 
+To exeute the example Rmd code, either open it in RStudio and run, or, to execute it from the command line run `Rscript -e "rmarkdown::render('cnv_pilot_plot_code.Rmd')`.
 Input:
 
-- gencode annotations: `../../../OpenPedCan-analysis/data/gencode.v39.primary_assembly.annotation.gtf.gz`
-- example methylation summary table: `input/example-isoform-methyl-beta-values-summary.tsv.gz`
+- `OpenPedCan-analysis` histologies table: `../../../OpenPedCan-analysis/data/histologies.tsv`
+- `OpenPedCan-analysis` DNA independent specimens table: `../../../OpenPedCan-analysis/data/independent-specimens.wgswxspanel.primary.prefer.wxs.tsv`
+- `OpePedCan-analysis` CNV data table: `../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.tsv.gz`
 
 Output:
 
+- `cnv_pilot_plot_code.html`
+- `plots/bubble_plot_counts_ADNP2.png`
+- `plots/bubble_plot_counts_DUX4.png` 
+- `plots/bubble_plot_counts_MYCN.png`  
+- `plots/bubble_plot_percents_ADNP2.png `  
+- `plots/bubble_plot_percents_DUX4.png`
+- `plots/bubble_plot_percents_MYCN.png`
+- `plots/evidence_plot_bar_percentages_ADNP2.png`
+- `plots/evidence_plot_bar_percentages_DUX4.png`
+- `plots/evidence_plot_bar_percentages_MYCN.png`
+
 #### Disease View
+
+**`cnv_pilot_plot_code_disease.Rmd`** This script reads in the data from the `OpenPedCan-analysis` submodule, combines/formats it appropriately, and then plots example circos plots using Neuroblastoma data for the MTP disease view.
+
+Usage:
+
+To exeute the example Rmd code, either open it in RStudio and run, or, to execute it from the command line run `Rscript -e "rmarkdown::render('cnv_pilot_plot_code_disease.Rmd')`.
+
+Input:
+
+- UCSC hg38 cytobands table: <http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/cytoBand.txt.gz>
+- `OpenPedCan-analysis` PMTL annotation: `../../../OpenPedCan-analysis/data/ensg-hugo-pmtl-mapping.tsv`
+- PMTL gene locations: `inputs/gene_locs.tsv`
+- `OpenPedCan-analysis` histologies table: `../../../OpenPedCan-analysis/data/histologies.tsv`
+- `OpenPedCan-analysis` DNA independent specimens table: `../../../OpenPedCan-analysis/data/independent-specimens.wgswxspanel.primary.prefer.wxs.tsv`
+- `OpePedCan-analysis` CNV data table: `../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.tsv.gz`
+- `OpenPedCan-analysis` RNA independent specimens table: `../../../OpenPedCan-analysis/data/independent-specimens.rnaseq.primary.tsv`
+- `OpenPedCan-analysis` gene fusion data table: `../../../OpenPedCan-analysis/data/fusion-putative-oncogenic.tsv`
+- `OpenPedCan-analysis` gene expression R data (RDS) file: `../../../OpenPedCan-analysis/data/gene-expression-rsem-tpm-collapsed.rds` 
+
+Output:
+
+- `cnv_pilot_plot_code_disease.html`
+- `plots/cnv_disease_circle.png`
+
+
+<br><br>
