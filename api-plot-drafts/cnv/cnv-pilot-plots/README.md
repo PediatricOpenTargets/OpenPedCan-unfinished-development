@@ -35,6 +35,7 @@ For the CNV evidence view database code, please see the development fork at [kel
 For the gene page view, we settled on a bubble plot with diseases on the x-axis, categorical copy number on the y-axis (0, 1, 2, 3, 4, 5+), with the bubbles proportional to the number of samples for the particular disease. 
 Since it was useful to see both the absolute count of samples and the proportion of samples in the disease at a given copy number, the plan would have been to have two views, one for absolute count and one for percentage. 
 You can see the percentage version [here](plots/final_pilot_plots/gene_page_view_bubble_plot_percents_MYCN.png)
+Development for this plot was planned for after the evidence plot view was completed.
 
 #### Disease Page View
 
@@ -49,6 +50,7 @@ More green is a correlation closer to -1, more purple is a correlation closer to
 The next layer labels whether or not that position is a known cancer gene on the Pediatric Molecular Targets List (PMTL).
 Finally, the innermost layer connects gene fusion partners together. 
 This does not represent all fusions present in the data, but only gives fusions for the specific disease that overlap with a CNV for at least one of the gene partners as well as having one of the gene partners on the PMTL list.
+Development for this plot was planned for after the evidence plot and gene plot views were completed.
 **WARNING:** There is currently an error in the circos plot code, where the innermost ring showing the fusion connections does not line up with the human genome backbone. 
 The majority of the connections should line up with chr1, not chrY as it appears in the image.
 As this plot is no longer under active development, the code will not be corrected.
