@@ -1,5 +1,6 @@
 ## Pilot code for methylation plots
-*Author:* Alvin Farrel
+*Author:* Alvin Farrel @afarrel
+
 
 ### Purpose
 
