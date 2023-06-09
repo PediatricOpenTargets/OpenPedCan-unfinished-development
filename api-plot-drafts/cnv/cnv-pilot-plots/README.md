@@ -70,6 +70,7 @@ The disease page view circos plot, however, requires approximately 40GB of RAM s
 Usage:
 
 To exeute the example Rmd code, either open it in RStudio and run, or, to execute it from the command line run `Rscript -e "rmarkdown::render('cnv_pilot_plot_code.Rmd')`.
+
 Input:
 
 - `OpenPedCan-analysis` histologies table: `../../../OpenPedCan-analysis/data/histologies.tsv`
