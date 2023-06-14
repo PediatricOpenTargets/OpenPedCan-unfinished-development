@@ -11,10 +11,18 @@ For the most up-to-date instructions on how to access code and data, please see 
 
 ### Pilot Plot
 
-**INSERT HERE** Description of plot with link to picture
+![Figure 1. Example pilot plot for methylation plots, using methylation and gene expresspresion at MYCN. Please see following paragraph for an extended description of all the layers in](plots/final_pilot_plots/methylation_pilot_plot.png)
+
+For the methylation plots, we proposed a multilayered plot bringing together methylation and gene expression information. 
+At the top is a pictoral representation of the chromosome the gene for the plot is on with a red lining marking the location of the gene on the chromosome. 
+The next layer down shows representations of all transcripts for the plot gene; MYCN only has two but there can be many different transcripts for a single gene. 
+At time of project end, all methylation data in OPC was from different methylation arrays (Illumina 27K, 450K, EPIC/850K and Roche Nimblegen HELP) and these arrays all measure methylation using probes at predetermined locations in the genome and report methylation as a beta value between 0 and 1 where 0 is completely unmethylated and 1 is completely methylated. 
+The next layer shows the correlation of those beta values at each probe with the transcript-specific expression of that gene. 
+The last layer in the horizontal direction is the distribution of the beta values at each probe over the gene body. 
+Last, on the right are boxplots showing the normal transcript-specific expression of the gene in all tissues from  GTEx.
 
 Next steps for developing these plots for the API would be to refactor the code to handle additional variables and to prep for incorporation into the API. 
-It needs to be worked out how to handle different cohorts, handle different cancer types, and how we want to handle the summary table although consensus was converging on summary by gene feaure (like promoter, exon, intron, maybe TSS/TES as well).
+It needs to be worked out how to handle different cohorts, handle different cancer types, and how we want to handle the summary table that would be available for download with the plot, although consensus was converging on summary by gene feaure (like promoter, exon, intron, maybe TSS/TES as well).
 
 ### Usage
 
