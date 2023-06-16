@@ -41,4 +41,6 @@ Input:
 
 Output:
 
-Code is not working to produce an output at the time of archiving so it would have to be edited to produce example plots.
+- `plots/example_methylation_plot.R`
+
+<br><br>

@@ -1,3 +1,5 @@
+
+# packages to install before executing script
 #BiocManager::install("GenomicRanges")
 #BiocManager::install("Gviz")
 #BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
@@ -7,8 +9,8 @@
 #install.packages("reshape")
 #BiocManager::install("IlluminaHumanMethylationEPICanno.ilm10b2.hg19")
 
-library("GenomicRanges")
-library("Gviz")
+library(GenomicRanges)
+library(Gviz)
 library(plyranges)
 library(dplyr)
 
@@ -21,19 +23,19 @@ Methyl_ISOFORM_DATA = read.delim('input/example-isoform-methyl-beta-values-summa
 
 
 ### Test Parameters #
-GENE_NAME = "BPTF"
-GENE_NAME = "ALK"
-GENE_NAME = "B2M"
-GENE_NAME = "CLK1"
-Disease = "Neuroblastoma"
-Disease = "High-grade glioma/astrocytoma"
+# GENE_NAME = "BPTF"
+# GENE_NAME = "ALK"
+# GENE_NAME = "B2M"
+# GENE_NAME = "CLK1"
+# GENE_NAME = "MYCN"
+# Dataset = "TARGET"
+# Disease = "Neuroblastoma"
+# Disease = "High-grade glioma/astrocytoma"
+# TRANSCRIPT_pct_threshold = 10
 
 
-TRANSCRIPT_pct_threshold = 10
 
-### Test Parameters #
-
-#### Function to generate plot####
+#### Function to generate plot ####
 
 GET_METHYLATION_PLOT = function(GENE_NAME, Disease = "Neuroblastoma", Dataset = "TARGET", TRANSCRIPT_pct_threshold =10)
 {
@@ -103,8 +105,8 @@ GET_METHYLATION_PLOT = function(GENE_NAME, Disease = "Neuroblastoma", Dataset = 
   
 
   #Subset methylation data based on gene, disease, cohort, and transcript percent threshold#
-  Methylation_data_subset = Methyl_ISOFORM_DATA[which(Methyl_ISOFORM_DATA$Gene_symbol == GENE_NAME & Methyl_ISOFORM_DATA$Disease == Disease & Methyl_ISOFORM_DATA$Dataset== Dataset & Methyl_ISOFORM_DATA$Transcript_Representation >= TRANSCRIPT_pct_threshold),]
-  
+  Methylation_data_subset = Methyl_ISOFORM_DATA[which(Methyl_ISOFORM_DATA$Gene_symbol == GENE_NAME & Methyl_ISOFORM_DATA$Disease == Disease & Methyl_ISOFORM_DATA$Dataset == Dataset & Methyl_ISOFORM_DATA$Transcript_Representation >= TRANSCRIPT_pct_threshold),]
+  # Methylation_data_subset = Methyl_ISOFORM_DATA[which(Methyl_ISOFORM_DATA$Gene_symbol == GENE_NAME & Methyl_ISOFORM_DATA$Disease == Disease & Methyl_ISOFORM_DATA$Dataset == Dataset)]
 
   #Include traascript percntages in annotation (parentheses)#
   Methylation_data_subset$transcripts = paste(Methylation_data_subset$transcript_id," (",round(Methylation_data_subset$Transcript_Representation),"%)",sep="")
@@ -165,11 +167,11 @@ GET_METHYLATION_PLOT = function(GENE_NAME, Disease = "Neuroblastoma", Dataset = 
   
 }
 
-GET_METHYLATION_PLOT("MYCN",Disease = "Neuroblastoma",Dataset = "TARGET",TRANSCRIPT_pct_threshold =10)
-GET_METHYLATION_PLOT("ALK",Disease = "Neuroblastoma",Dataset = "TARGET",TRANSCRIPT_pct_threshold =10)
-GET_METHYLATION_PLOT("BPTF",Disease = "Neuroblastoma",Dataset = "TARGET",TRANSCRIPT_pct_threshold =10)
-GET_METHYLATION_PLOT("TP53",Disease = "Neuroblastoma",Dataset = "TARGET",TRANSCRIPT_pct_threshold =10)
 
+# example plot
+png('plots/example_methylation_plot.png')
+GET_METHYLATION_PLOT("BPTF",Disease = "Neuroblastoma",Dataset = "TARGET",TRANSCRIPT_pct_threshold = 10) #-> methylation_plot
+dev.off()
 
 
 
