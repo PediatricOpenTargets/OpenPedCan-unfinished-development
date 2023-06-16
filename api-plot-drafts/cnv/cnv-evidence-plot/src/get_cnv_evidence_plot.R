@@ -10,17 +10,6 @@
 #
 # - get_cnv_evidence_plot
 
-
-
-# Get a ggplot boxplot of a single gene and one disease (with all cohorts if 
-# applicable)
-#
-# Args:
-# - cnv_evidence_tbl: a tibble of a single gene, one disease, with multiple
-#   cohorts if they exist for that disease and returned by get_cnv_evidence_tbl.
-# 
-# Returns a ggplot stacked bar plot of a single gene and one disease, with
-# multiple cohorts if they exist for that gene
 get_cnv_evidence_plot <- function(cnv_evidence_tbl) {
   ensg_id <- unique(cnv_evidence_tbl$ensembl)
   stopifnot(is.character(ensg_id))
@@ -37,7 +26,7 @@ get_cnv_evidence_plot <- function(cnv_evidence_tbl) {
   stopifnot(!is.na(cohort))
   # stopifnot(identical(length(cohort), 1L))
   
-  efo_id_vec <- purrr::discard(unique(cnv_evidence_tbl$EFO), is.na)
+  efo_id_vec <- purrr::discard(unique(cnv_evidence_tbl$efo_code), is.na)
   stopifnot(is.character(efo_id_vec))
   stopifnot(length(efo_id_vec) > 0)
   
@@ -103,13 +92,15 @@ get_cnv_evidence_plot <- function(cnv_evidence_tbl) {
   
   ### Format cnv_evidence_tbl for plotting
   cnv_evidence_tbl %>%
-    group_by(ensembl, gene_symbol, cancer_group, cancer_status, cohort) %>%
+    group_by(ensembl, gene_symbol, cancer_group, specimen_descriptor, cohort) %>%
     mutate(group_count = sum(sample_count)) %>%
     ungroup() %>%
     mutate(status = factor(status, levels = c('amplification', 'gain', 'neutral',
                                               'loss', 'deep deletion')),
            cohort = factor(cohort, levels = c('All Cohorts', 'GMKF',
                                               'PBTA', 'TARGET')),
+           cancer_status = ifelse(specimen_descriptor == 'Primary Tumor',
+                                  'primary', 'relapse'),
            cancer_status = factor(cancer_status, levels = c('primary', 'relapse')),
            percentage = round(((sample_count / group_count) * 100)),
            label = ifelse(sample_count > 0 & percentage == 0, '<1%',
@@ -135,15 +126,15 @@ get_cnv_evidence_plot <- function(cnv_evidence_tbl) {
     ggplot2::geom_text(ggplot2::aes(label = label, color = status),
                        position = position_stack(vjust = 0.5)) +
     ggplot2::scale_color_manual(values = c('gray0', 'gray0', 'gray0', 'gray100',
-                                           'gray100', 'gray100'),
-                                guide = 'none', drop = F) +
+                                                  'gray100', 'gray100'),
+                                                  guide = 'none', drop = F) +
     ggplot2::geom_text(data = sample_size_labels, y = 105,
                        ggplot2::aes(label = count_label)) +
     ggplot2::coord_cartesian(ylim = c(0, 107)) +
     ggplot2::scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100)) +
     ggplot2::labs(x = 'Cohort', y = 'Percent Copy Number', fill = 'Copy Number',
                   title = title$title) +
-    ggplot2::theme_classic(base_size = 16)
+    ggplot2::theme_classic(base_size = 16) -> cnv_evidence_plot
   
   return(cnv_evidence_plot)
 }

@@ -1,7 +1,6 @@
 ---
-title: "Untitled"
+title: ""
 output: html_document
-date: "2023-06-09"
 ---
 
 ```{r setup, include=FALSE}
@@ -25,8 +24,6 @@ The evidence page view in Open Targets is for data from specific gene and diseas
 
 ```{r}
 vroom('input/example_cnv_cnv_evidence_summary.csv') -> cnv_evidence_database_example
-
-cnv_evidence_database_example %>% filter(cancer_group == 'Neuroblastoma')
 ```
 
 In the API, the script `src/get_cnv_evidence_tbl.R` would query the database and filter for the gene and disease requested. Constructing the database and running the API is beyond the scope of this repository so for the sake of executing the plot and summary table scripts, the example database is filtered normally using tidyverse functions.
@@ -36,6 +33,7 @@ In the API, the script `src/get_cnv_evidence_tbl.R` would query the database and
 `get_cnv_evidence_tbl()`
 
 Args:
+
 - ensg_id: a single character value of gene ENSG ID. REQUIRED.
 - relapse_sample_group: a single character value with the following choices.
   REQUIRED.
@@ -51,6 +49,7 @@ Args:
   symbols.
 
 Returns a tibble with the following columns:
+
 - cohort: a single cohort. If the input efo_id has more than one histology_df
   cohorts, e.g. GMKF and TARGET, include an additional cohort "All Cohorts" in
   the result table.
@@ -83,16 +82,17 @@ cnv_evidence_database_example %>%
 
 ### Step 2: Plot
 
----
-
 `get_cnv_evidence_plot()`
 
 Args:
-- cnv_evidence_tbl: a tibble of a single gene, one disease, with multiple
-  cohorts if they exist for that disease and returned by get_cnv_evidence_tbl.
+
+- `cnv_evidence_tbl`: a tibble of a single gene, one disease, with multiple
+  cohorts if they exist for that disease and returned by `get_cnv_evidence_tbl()`.
 
 Returns a ggplot stacked bar plot of a single gene and one disease, with
 multiple cohorts if they exist for that gene
+
+---
 
 ```{r}
 get_cnv_evidence_plot(cnv_evidence_tbl)
@@ -100,7 +100,21 @@ get_cnv_evidence_plot(cnv_evidence_tbl)
 
 ### Step 3: Return the Plot Data Summary Table
 
+`get_cnv_evidence_summary_tbl()`
 
+Args:
+
+- `cnv_evidence_tbl`: a tibble of a single gene, one disease, with multiple
+  cohorts if they exist for that disease and returned by `get_cnv_evidence_tbl()`.
+
+Returns a summary table of a single gene and one disease, with
+multiple cohorts if they exist for that gene
+
+---
+
+```{r}
+get_cnv_evidence_summary_tbl(cnv_evidence_tbl)
+```
 
 
 
