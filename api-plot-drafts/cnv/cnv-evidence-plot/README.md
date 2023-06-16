@@ -17,7 +17,7 @@ For the most up-to-date instructions on how to access code and data, please see 
 
 **NOTE:** Before running code, please check the relevant R/Rmd script to make sure that you have all necessary packages installed.
 
-**``** 
+
 
 Usage:
 
@@ -25,8 +25,13 @@ To exeute the example Rmd code, either open it in RStudio and run, or, to execut
 
 Input:
 
+- `input/example_cnv_cnv_evidence_summary.csv`
+
 - 
 
 Output:
+
+- `plots/example_cnv_evidence_plot.png`
+- `plots/example_cnv_evidence_summary_tbl.tsv`
 
 - 

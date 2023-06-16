@@ -95,7 +95,9 @@ multiple cohorts if they exist for that gene
 ---
 
 ```{r}
-get_cnv_evidence_plot(cnv_evidence_tbl)
+get_cnv_evidence_plot(cnv_evidence_tbl) -> cnv_evidence_plot
+cnv_evidence_plot
+ggsave('plots/example_cnv_evidence_plot.png')
 ```
 
 ### Step 3: Return the Plot Data Summary Table
@@ -113,7 +115,9 @@ multiple cohorts if they exist for that gene
 ---
 
 ```{r}
-get_cnv_evidence_summary_tbl(cnv_evidence_tbl)
+get_cnv_evidence_summary_tbl(cnv_evidence_tbl) -> cnv_evidence_summary_tbl
+cnv_evidence_summary_tbl
+write_tsv(cnv_evidence_summary_tbl, 'plots/example_cnv_evidence_summary_tbl.tsv')
 ```
 
 

@@ -1,0 +1,12 @@
+ensembl	gene_symbol	cancer_group	status	cohort	specimen_descriptor	sample_count	efo_code	mondo_code	ncit_code	version	group_count	percentage	label
+ENSG00000134323	MYCN	Neuroblastoma	amplification	All Cohorts	Primary Tumor	77	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	249	31	31%
+ENSG00000134323	MYCN	Neuroblastoma	amplification	GMKF	Primary Tumor	22	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	70	31	31%
+ENSG00000134323	MYCN	Neuroblastoma	amplification	PBTA	Primary Tumor	1	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	1	100	100%
+ENSG00000134323	MYCN	Neuroblastoma	amplification	TARGET	Primary Tumor	57	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	186	31	31%
+ENSG00000134323	MYCN	Neuroblastoma	gain	All Cohorts	Primary Tumor	71	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	249	29	29%
+ENSG00000134323	MYCN	Neuroblastoma	gain	GMKF	Primary Tumor	48	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	70	69	69%
+ENSG00000134323	MYCN	Neuroblastoma	gain	TARGET	Primary Tumor	26	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	186	14	14%
+ENSG00000134323	MYCN	Neuroblastoma	loss	All Cohorts	Primary Tumor	44	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	249	18	18%
+ENSG00000134323	MYCN	Neuroblastoma	loss	TARGET	Primary Tumor	44	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	186	24	24%
+ENSG00000134323	MYCN	Neuroblastoma	neutral	All Cohorts	Primary Tumor	57	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	249	23	23%
+ENSG00000134323	MYCN	Neuroblastoma	neutral	TARGET	Primary Tumor	59	EFO_0000621	MONDO_0005072	NCIT_C3270	PMTL version 1.1	186	32	32%
