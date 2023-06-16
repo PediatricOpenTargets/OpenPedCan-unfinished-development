@@ -91,7 +91,7 @@ Actual table with CNVs, filtered for our independent specimens, for primary tumo
 
 ```{r}
 ### cnvs
-vroom::vroom('../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.tsv') %>%
+vroom::vroom('../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.tsv.gz') %>%
   # filter for masterlist of biospecimen ids, for primary tumor only
   inner_join(filter(histologies, cancer_group == 'Neuroblastoma'),
              by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID')) %>%
@@ -107,7 +107,7 @@ vroom::vroom('../../../OpenPedCan-analysis/data/consensus_wgs_plus_cnvkit_wxs.ts
 ```{r}
 ### rnaseq independent specs; same as for CNVs this makes sure we have one 
 # unique sample for each patient
-vroom::vroom('../../../OpenPedCan-analysis/data/independent-specimens.rnaseq.primary.tsv') -> rnaseq_independent_specs
+vroom::vroom('../../../OpenPedCan-analysis/data/independent-specimens.rnaseqpanel.primary.tsv') -> rnaseq_independent_specs
 ```
 
 #### Fusions
@@ -120,7 +120,7 @@ Fusion data is called from RNA-seq only
 vroom::vroom('../../../OpenPedCan-analysis/data/fusion-putative-oncogenic.tsv') %>%
   inner_join(filter(histologies, cancer_group == 'Neuroblastoma'),
              by = c('Sample' = 'Kids_First_Biospecimen_ID')) %>%
-  filter(sample_type == 'Tumor', broad_tumor_descriptor == 'Diagnosis',
+  filter(sample_type == 'Tumor', tumor_descriptor == 'Primary Tumor',
          !is.na(cancer_group), Sample != 'TARGET-10-PARDSP-09A-01D',
          Sample %in% rnaseq_independent_specs$Kids_First_Biospecimen_ID) -> fusions
 
@@ -176,11 +176,8 @@ readr::read_rds('../../../OpenPedCan-analysis/data/gene-expression-rsem-tpm-coll
   tidyr::pivot_longer(2:ncol(.), names_to = 'biospecimen_id', values_to = 'tpm') %>% 
   dplyr::inner_join(rnaseq_independent_specs, 
             by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID')) %>%
-  dplyr::left_join(histologies, 
-            by = c('biospecimen_id' = 'Kids_First_Biospecimen_ID', 
-                   'Kids_First_Participant_ID')) %>%
   dplyr::filter(Kids_First_Participant_ID %in% cnv$Kids_First_Participant_ID,
-         sample_type == 'Tumor', broad_tumor_descriptor == 'Diagnosis',
+         tumor_descriptor == 'Primary Tumor',
          !is.na(cancer_group), cancer_group == 'Neuroblastoma') -> expression
 ```
 
