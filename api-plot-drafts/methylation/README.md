@@ -1,6 +1,16 @@
 ## Pilot code for methylation plots
 *Author:* Alvin Farrel @afarrel
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Purpose](#purpose)
+- [Pilot Plot](#pilot-plot)
+- [Usage](#usage)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ### Purpose
 
 This section documents and has executable code for the proposed methylation plots for the OpenPedCan/MTP API. 

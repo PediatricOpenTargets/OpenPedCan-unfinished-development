@@ -1,6 +1,21 @@
 ## Pilot code for copy number variant (CNV) plots
 *Author:* Kelsey Keith @kelseykeith
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Purpose](#purpose)
+- [Pilot Plots](#pilot-plots)
+  - [Evidence Page View](#evidence-page-view)
+  - [Gene Page View](#gene-page-view)
+  - [Disease Page View](#disease-page-view)
+- [Usage](#usage)
+  - [Evidence and Gene Views](#evidence-and-gene-views)
+  - [Disease View](#disease-view)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ### Purpose
 
 This section documents and has executable code for the proposed copy number variant (CNV) plots for the OpenPedCan/MTP API. 

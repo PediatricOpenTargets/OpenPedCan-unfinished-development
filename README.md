@@ -1,8 +1,22 @@
+
 ## OpenPedCan-unfinished-development
 
 At the Children's Hospital of Philadelphe, the Open Pediatric Cancer (OpenPedCan) project harmonized pediatric cancer data. One way the data was made available was through an API that, in collaboration with the National Cancer Institute (NCI), provided results from the [OpenPedCan-analysis](https://github.com/PediatricOpenTargets/OpenPedCan-analysis) project to the Molecular [Targets Platform](https://moleculartargets.ccdi.cancer.gov/pediatric-cancer-data-navigation). 
 This repository, `OpenPedCan-unfinished-development`, archives and documents code for plots in development for the [OpenPedCan-api](https://github.com/PediatricOpenTargets/OpenPedCan-api).
 **WARNING:** This repository is intended to be an archive, so code is not maintained and there may be breaking changes at any time. 
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Using `OpenPedCan-unfinished-development` Code](#using-openpedcan-unfinished-development-code)
+  - [Repository Code](#repository-code)
+  - [Using the `OpenPedCan-analysis` Submodule](#using-the-openpedcan-analysis-submodule)
+- [Getting Started with API Development](#getting-started-with-api-development)
+  - [Developing an OpenPedCan-Api Plot](#developing-an-openpedcan-api-plot)
+  - [Getting Started](#getting-started)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ### Using `OpenPedCan-unfinished-development` Code
 
